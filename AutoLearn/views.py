@@ -61,16 +61,8 @@ class LoginUserView(APIView):
     
 @api_view(['POST'])
 def getUser(request):
-    token = request.COOKIES.get('jwt')
-    if not token:
-        raise AuthenticationFailed("Unauthorised")
-    
-    try: 
-        payload= jwt.decode(token, 'secret', algorithms=['HS256'])
-    except jwt.ExpiredSignatureError:
-        raise AuthenticationFailed("Unauthorised")
-    
-    user=User.objects.filter(id=payload['id']).first()
+    user_id = request.jwt_payload['id']
+    user=User.objects.filter(id = user_id).first()
     serializer = UserSerializer(user)
     return Response(serializer.data)
 
@@ -87,16 +79,7 @@ def logoutview(request):
 @csrf_exempt
 @api_view(['POST'])
 def getcourseform(request):
-    token = request.COOKIES.get('jwt')
-    if not token:
-        raise AuthenticationFailed("Unauthorised")
-    
-    try: 
-        payload= jwt.decode(token, 'secret', algorithms=['HS256'])
-    except jwt.ExpiredSignatureError:
-        raise AuthenticationFailed("Unauthorised")
-    
-    user_id = payload['id']
+    user_id = request.jwt_payload['id']
     course_name = request.data['course']
     course_level = request.data['level_info']
     
@@ -138,17 +121,7 @@ def getcourseform(request):
 @csrf_exempt
 @api_view(['POST'])
 def getusercourses(request):
-    token = request.COOKIES.get('jwt')
-    if not token:
-        raise AuthenticationFailed("Unauthorised")
-    
-    try: 
-        payload= jwt.decode(token, 'secret', algorithms=['HS256'])
-    except jwt.ExpiredSignatureError:
-        raise AuthenticationFailed("Unauthorised")
-    
-    
-    user_id = payload['id']
+    user_id = request.jwt_payload['id']
     user = get_object_or_404(User, id=user_id)
     all_ids = UserCourseInfo.objects.filter(Id=user).values('courseid')
     courseinfo_obj=CourseInfo.objects.filter(courseid__in = Subquery(all_ids))
@@ -160,33 +133,14 @@ def getusercourses(request):
 @csrf_exempt
 @api_view(['POST'])
 def getcoursetopics(request):
-    token = request.COOKIES.get('jwt')
-    if not token:
-        raise AuthenticationFailed("Unauthorised")
-    
-    try: 
-        payload= jwt.decode(token, 'secret', algorithms=['HS256'])
-    except jwt.ExpiredSignatureError:
-        raise AuthenticationFailed("Unauthorised")
-    
-    user_id = payload['id']
     course_id=request.data['courseid']
     return Response(Topicserializer(Topic.objects.filter(courseid= course_id),many=True).data)
     
 @csrf_exempt
 @api_view(['POST'])
 def contentandchats(request):
-    token = request.COOKIES.get('jwt')
-    if not token:
-        raise AuthenticationFailed("Unauthorised")
-    
-    try: 
-        payload= jwt.decode(token, 'secret', algorithms=['HS256'])
-    except jwt.ExpiredSignatureError:
-        raise AuthenticationFailed("Unauthorised")
-    
-    
-    user_id = payload['id']
+    # user_id = payload['id']
+    user_id = request.jwt_payload['id']
     topic_id = request.data['topicid']
     courseid = Topic.objects.filter(topicid=topic_id).values('courseid')[0]['courseid']
     uid = UserCourseInfo.objects.filter(Id=user_id, courseid=courseid).values('UID')[0]['UID']
@@ -206,16 +160,7 @@ def contentandchats(request):
 @csrf_exempt
 @api_view(['POST'])
 def processchat(request):
-    token = request.COOKIES.get('jwt')
-    if not token:
-        raise AuthenticationFailed("Unauthorised")
-    
-    try: 
-        payload= jwt.decode(token, 'secret', algorithms=['HS256'])
-    except jwt.ExpiredSignatureError:
-        raise AuthenticationFailed("Unauthorised")
-    
-    user_id = payload['id']
+    user_id = request.jwt_payload['id']
     topic_id = request.data['topicid']
     chatcontent = request.data['chatcontent']
     courseid = Topic.objects.filter(topicid=topic_id).values('courseid')[0]['courseid']
